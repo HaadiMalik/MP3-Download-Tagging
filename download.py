@@ -1,10 +1,11 @@
 """
-version 0.2
+version 0.3
 0.1 - Downloads a YouTube link, converts to mp3, and tags it (artist/title).
-0.2 - Auto-parses "Artist - Title" from the video title; --artist/--name override it.
+0.2 - Auto-parses "Artist - Title" from the video title; Also use --artist/--song arg override.
+0.3 - Renames the file to "Song - Artist.mp3" after tagging.
 
 ../../..>  python download.py "<youtube_url>"
-../../..>  python download.py "<youtube_url>" --artist "X" --name "Y"
+../../..>  python download.py "<youtube_url>" --song "X" --artist "Y"
 """
 
 import argparse
@@ -95,6 +96,28 @@ def tag_mp3(mp3_path: str, artist: str, song: str):
     tags.save(mp3_path)
 
 
+def sanitize_filename(name: str) -> str:
+    return re.sub(r'[<>:"/\\|?*]', "", name).strip()
+
+
+def rename_file(mp3_path: str, artist: str, song: str) -> str:
+    """
+    Renames the mp3 to "Song - Artist.mp3". Appends a number if that
+    name is already taken, so an existing file is never overwritten.
+    """
+    directory = os.path.dirname(mp3_path)
+    base_name = sanitize_filename(f"{song} - {artist}")
+    new_path = os.path.join(directory, f"{base_name}.mp3")
+
+    counter = 1
+    while os.path.exists(new_path) and new_path != mp3_path:
+        new_path = os.path.join(directory, f"{base_name} ({counter}).mp3")
+        counter += 1
+
+    os.rename(mp3_path, new_path)
+    return new_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Download a YouTube link as a tagged mp3."
@@ -118,6 +141,8 @@ def main():
             song = args.song
 
     tag_mp3(mp3_path, artist, song)
+    mp3_path = rename_file(mp3_path, artist, song)
+
     print(f"Tagged as: {song} - {artist}")
     print(f"Done: {mp3_path}")
 
