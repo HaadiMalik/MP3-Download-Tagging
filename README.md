@@ -1,11 +1,11 @@
 # MP3-Download-Tagging
 
-A simple tool to download audio from YouTube and save it as a tagged mp3.  
+A simple tool to download audio from YouTube and save it as a tagged mp3.
 **Note: Intended for personal use**
 
 ## Status
 
-v0.3 — downloads, converts to mp3, tags with artist/title, and renames the file to "Song - Artist.mp3".
+v0.4 — downloads, converts to mp3, tags with artist/title/album/cover art (via the iTunes Search API).
 
 ## Setup
 
@@ -46,6 +46,7 @@ python download.py "<youtube_url>" --output-dir path/to/folder
 - **0.2** — Auto-parses "Artist - Song" from the video title and writes artist/title ID3 tags. `--artist`/`--song` args override the
   parsed values (skips parsing entirely if both are given).
 - **0.3** — Renames the tagged file to "Song - Artist.mp3", sanitizing characters invalid in filenames and avoiding overwrites.
+- **0.4** — Looks up album name and cover art via the iTunes Search API.  `--no-lookup` skips this and falls back to title/artist-only tagging.
 
 ## License
 
