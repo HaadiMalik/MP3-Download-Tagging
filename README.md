@@ -5,7 +5,8 @@ A simple tool to download audio from YouTube and save it as a tagged mp3.
 
 ## Status
 
-v0.4 — downloads, converts to mp3, tags with artist/title/album/cover art (via the iTunes Search API).
+v0.5 — same functionality as before, now split into main.py/download.py/identify.py/tagging.py for readability.
+Run with `python main.py`.
 
 ## Setup
 
@@ -25,19 +26,25 @@ You'll also need **ffmpeg** installed and on your PATH (used for audio conversio
 ## Usage
 
 ```bash
-python download.py "<youtube_url>"
+python main.py "<youtube_url>"
 ```
 
 Override auto-detected metadata if it guesses wrong:
 
 ```bash
-python download.py "<youtube_url>" --song "Song Title" --artist "Artist Name"
+python main.py "<youtube_url>" --song "Song Title" --artist "Artist Name"
+```
+
+Skip the iTunes lookup (no album/cover art):
+
+```bash
+python main.py "<youtube_url>" --no-lookup
 ```
 
 Files are saved to `downloads/` by default:
 
 ```bash
-python download.py "<youtube_url>" --output-dir path/to/folder
+python main.py "<youtube_url>" --output-dir path/to/folder
 ```
 
 ## Version history
@@ -47,6 +54,7 @@ python download.py "<youtube_url>" --output-dir path/to/folder
   parsed values (skips parsing entirely if both are given).
 - **0.3** — Renames the tagged file to "Song - Artist.mp3", sanitizing characters invalid in filenames and avoiding overwrites.
 - **0.4** — Looks up album name and cover art via the iTunes Search API.  `--no-lookup` skips this and falls back to title/artist-only tagging.
+- **0.5** — Split into `main.py`/`download.py`/`identify.py`/`tagging.py` for readability. No functional changes; run with `python main.py`.
 
 ## License
 
