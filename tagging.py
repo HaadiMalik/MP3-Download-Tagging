@@ -6,11 +6,12 @@ import os
 import re
 from urllib.request import urlopen
 
-from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1, TALB, APIC
+from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1, TALB, APIC, TDRC, TRCK, TPE2
 
 
-def tag_mp3(mp3_path: str, artist: str, song: str, album: str = "", artwork_url: str = ""):
-    """Writes artist/title/album/cover art ID3 tags to the mp3 file."""
+def tag_mp3(mp3_path: str, artist: str, song: str, album: str = "", artwork_url: str = "",
+            year: str = "", track_number: str = "", album_artist: str = ""):
+    """Writes ID3 tags (title/artist/album/art/year/track#/album artist) to the mp3."""
     try:
         tags = ID3(mp3_path)
     except ID3NoHeaderError:
@@ -20,6 +21,12 @@ def tag_mp3(mp3_path: str, artist: str, song: str, album: str = "", artwork_url:
     tags["TPE1"] = TPE1(encoding=3, text=artist)
     if album:
         tags["TALB"] = TALB(encoding=3, text=album)
+    if year:
+        tags["TDRC"] = TDRC(encoding=3, text=year)
+    if track_number:
+        tags["TRCK"] = TRCK(encoding=3, text=track_number)
+    if album_artist:
+        tags["TPE2"] = TPE2(encoding=3, text=album_artist)
 
     if artwork_url:
         try:
@@ -38,7 +45,7 @@ def sanitize_filename(name: str) -> str:
 def rename_file(mp3_path: str, artist: str, song: str) -> str:
     """
     Renames the mp3 to "Song - Artist.mp3". Appends a number if that
-    name is already taken, so an existing file is never overwritten.
+    name is already taken.
     """
     directory = os.path.dirname(mp3_path)
     base_name = sanitize_filename(f"{song} - {artist}")

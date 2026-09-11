@@ -8,7 +8,7 @@ import time
 
 import requests
 
-_MUSICBRAINZ_USER_AGENT = "MP3-Download-Tagging/0.6 (personal use script)"
+_MUSICBRAINZ_USER_AGENT = "MP3-Download-Tagging/0.7 (personal use script)"
 _last_musicbrainz_call = 0.0
 
 
@@ -33,8 +33,8 @@ def parse_title(raw_title: str) -> tuple[str, str]:
 
 def lookup_itunes(artist: str, song: str) -> dict:
     """
-    Queries the free iTunes Search API for album name and cover art.
-    Returns {} if no match is found or the request fails.
+    Queries the free iTunes Search API for album, artwork, year, track
+    number, and album artist. Returns {} if no match or request fails.
     """
     try:
         resp = requests.get(
@@ -48,9 +48,13 @@ def lookup_itunes(artist: str, song: str) -> dict:
             return {}
 
         top = results[0]
+        release_date = top.get("releaseDate", "")
         return {
             "album": top.get("collectionName", ""),
             "artwork_url": top.get("artworkUrl100", "").replace("100x100", "600x600"),
+            "year": release_date[:4] if release_date else "",
+            "track_number": str(top.get("trackNumber", "")) or "",
+            "album_artist": top.get("artistName", ""),
         }
     except requests.RequestException:
         return {}
@@ -58,11 +62,8 @@ def lookup_itunes(artist: str, song: str) -> dict:
 
 def lookup_musicbrainz(artist: str, song: str) -> dict:
     """
-    Queries MusicBrainz for album name, then Cover Art Archive for artwork.
-    Returns {} if no match is found or a request fails.
-
-    MusicBrainz requires a custom User-Agent and a max of 1 request/second,
-    so this throttles itself before calling.
+    Queries MusicBrainz for album/year/album artist, then Cover Art
+    Archive for artwork. Returns {} if no match or a request fails.
     """
     global _last_musicbrainz_call
     elapsed = time.time() - _last_musicbrainz_call
@@ -86,6 +87,8 @@ def lookup_musicbrainz(artist: str, song: str) -> dict:
         release = recordings[0]["releases"][0]
         release_id = release.get("id", "")
         album = release.get("title", "")
+        year = release.get("date", "")[:4]
+        album_artist = recordings[0].get("artist-credit", [{}])[0].get("name", "")
 
         artwork_url = ""
         if release_id:
@@ -96,7 +99,8 @@ def lookup_musicbrainz(artist: str, song: str) -> dict:
             if art_resp.status_code == 200:
                 artwork_url = art_resp.url
 
-        return {"album": album, "artwork_url": artwork_url}
+        return {"album": album, "artwork_url": artwork_url, "year": year,
+                "track_number": "", "album_artist": album_artist}
     except requests.RequestException:
         return {}
 
@@ -104,14 +108,12 @@ def lookup_musicbrainz(artist: str, song: str) -> dict:
 def identify_track(artist: str, song: str) -> dict:
     """
     Tries iTunes first, falls back to MusicBrainz if iTunes has no album
-    or artwork. Returns whichever result is more complete.
+    or artwork. Merges fields, preferring whichever source has each one.
     """
     result = lookup_itunes(artist, song)
     if result.get("album") and result.get("artwork_url"):
         return result
 
     mb_result = lookup_musicbrainz(artist, song)
-    return {
-        "album": result.get("album") or mb_result.get("album", ""),
-        "artwork_url": result.get("artwork_url") or mb_result.get("artwork_url", ""),
-    }
+    fields = ["album", "artwork_url", "year", "track_number", "album_artist"]
+    return {field: result.get(field) or mb_result.get(field, "") for field in fields}
