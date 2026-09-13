@@ -5,7 +5,7 @@ A simple tool to download audio from YouTube and save it as a tagged mp3.
 
 ## Status
 
-v0.7 — downloads, converts to mp3, tags with artist/title/album/cover art/year/track number/album artist, and renames the file.
+v0.8 — downloads, converts to mp3, tags with artist/title/album/cover art/year/track number/album artist/genre, and renames the file. 
 Metadata is looked up via iTunes first, falling back to MusicBrainz + Cover Art Archive if iTunes has no match.
 
 ## Setup
@@ -57,6 +57,8 @@ python main.py "<youtube_url>" --output-dir path/to/folder
 - **0.5** — Split into `main.py`/`download.py`/`identify.py`/`tagging.py` for readability. No functional changes; run with `python main.py`.
 - **0.6** — Falls back to MusicBrainz + Cover Art Archive when iTunes has no album or artwork for a track.
 - **0.7** — Also tags year, track number, and album artist.
+- **0.8** — Also tags genre; track number now formatted as "track/total" when both are available from iTunes. Genre/track-total not available
+  from the MusicBrainz fallback.
 
 ## License
 
