@@ -8,7 +8,7 @@ import time
 
 import requests
 
-_MUSICBRAINZ_USER_AGENT = "MP3-Download-Tagging/0.7 (personal use script)"
+_MUSICBRAINZ_USER_AGENT = "MP3-Download-Tagging/0.8 (personal use script)"
 _last_musicbrainz_call = 0.0
 
 
@@ -34,7 +34,8 @@ def parse_title(raw_title: str) -> tuple[str, str]:
 def lookup_itunes(artist: str, song: str) -> dict:
     """
     Queries the free iTunes Search API for album, artwork, year, track
-    number, and album artist. Returns {} if no match or request fails.
+    number (as "track/total"), album artist, and genre. Returns {} if
+    no match or request fails.
     """
     try:
         resp = requests.get(
@@ -49,12 +50,18 @@ def lookup_itunes(artist: str, song: str) -> dict:
 
         top = results[0]
         release_date = top.get("releaseDate", "")
+
+        track_num = top.get("trackNumber")
+        track_count = top.get("trackCount")
+        track_number = f"{track_num}/{track_count}" if track_num and track_count else str(track_num or "")
+
         return {
             "album": top.get("collectionName", ""),
             "artwork_url": top.get("artworkUrl100", "").replace("100x100", "600x600"),
             "year": release_date[:4] if release_date else "",
-            "track_number": str(top.get("trackNumber", "")) or "",
+            "track_number": track_number,
             "album_artist": top.get("artistName", ""),
+            "genre": top.get("primaryGenreName", ""),
         }
     except requests.RequestException:
         return {}
@@ -100,7 +107,7 @@ def lookup_musicbrainz(artist: str, song: str) -> dict:
                 artwork_url = art_resp.url
 
         return {"album": album, "artwork_url": artwork_url, "year": year,
-                "track_number": "", "album_artist": album_artist}
+                "track_number": "", "album_artist": album_artist, "genre": ""}
     except requests.RequestException:
         return {}
 
@@ -115,5 +122,5 @@ def identify_track(artist: str, song: str) -> dict:
         return result
 
     mb_result = lookup_musicbrainz(artist, song)
-    fields = ["album", "artwork_url", "year", "track_number", "album_artist"]
+    fields = ["album", "artwork_url", "year", "track_number", "album_artist", "genre"]
     return {field: result.get(field) or mb_result.get(field, "") for field in fields}

@@ -6,12 +6,12 @@ import os
 import re
 from urllib.request import urlopen
 
-from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1, TALB, APIC, TDRC, TRCK, TPE2
+from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1, TALB, APIC, TDRC, TRCK, TPE2, TCON
 
 
 def tag_mp3(mp3_path: str, artist: str, song: str, album: str = "", artwork_url: str = "",
-            year: str = "", track_number: str = "", album_artist: str = ""):
-    """Writes ID3 tags (title/artist/album/art/year/track#/album artist) to the mp3."""
+            year: str = "", track_number: str = "", album_artist: str = "", genre: str = ""):
+    """Writes ID3 tags (title/artist/album/art/year/track#/album artist/genre) to the mp3."""
     try:
         tags = ID3(mp3_path)
     except ID3NoHeaderError:
@@ -27,6 +27,8 @@ def tag_mp3(mp3_path: str, artist: str, song: str, album: str = "", artwork_url:
         tags["TRCK"] = TRCK(encoding=3, text=track_number)
     if album_artist:
         tags["TPE2"] = TPE2(encoding=3, text=album_artist)
+    if genre:
+        tags["TCON"] = TCON(encoding=3, text=genre)
 
     if artwork_url:
         try:
