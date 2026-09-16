@@ -8,26 +8,31 @@ import time
 
 import requests
 
-_MUSICBRAINZ_USER_AGENT = "MP3-Download-Tagging/0.8 (personal use script)"
+_MUSICBRAINZ_USER_AGENT = "MP3-Download-Tagging/0.9 (personal use script)"
 _last_musicbrainz_call = 0.0
 
 
 def parse_title(raw_title: str) -> tuple[str, str]:
     """
     Attempting to split and parse video title into (artist, song).
-    Strips messy information like "(Official Video)" and expects an "Artist - Song" pattern.
-    Falls back to ("Unknown Artist", raw_title) if the hyphen isn't found.
+    Falls back to ("Unknown Artist", raw_title) if nothing matches.
     """
     junk = [r"\(official.*?\)", r"\[official.*?\]", r"\(lyrics?.*?\)",
             r"\[lyrics?.*?\]", r"\(audio.*?\)", r"\[audio.*?\]"]
     cleaned = raw_title
     for pattern in junk:
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
-    cleaned = cleaned.strip(" -_|")
+    cleaned = cleaned.strip(" -_|–—")
 
-    if " - " in cleaned:
-        artist, song = cleaned.split(" - ", 1)
+    for sep in (" - ", " – ", " — "):
+        if sep in cleaned:
+            artist, song = cleaned.split(sep, 1)
+            return artist.strip(), song.strip()
+
+    if " | " in cleaned:
+        song, artist = cleaned.split(" | ", 1)
         return artist.strip(), song.strip()
+
     return "Unknown Artist", cleaned.strip()
 
 

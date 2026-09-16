@@ -1,5 +1,5 @@
 """
-version 0.8
+version 0.9
 0.1 - Downloads a YouTube link, converts to mp3, and tags it (artist/title).
 0.2 - Auto-parses "Artist - Title" from the video title; Also use --artist/--song arg override.
 0.3 - Renames the file to "Song - Artist.mp3" after tagging.
@@ -8,6 +8,7 @@ version 0.8
 0.6 - Falls back to MusicBrainz + Cover Art Archive if iTunes has no match.
 0.7 - Also tags year, track number, and album artist.
 0.8 - Also tags genre; track number now formatted as "track/total" when available.
+0.9 - parse_title now handles "feat."/"ft.", en/em dashes, and "Song | Artist" titles.
 
 ../../..>  python main.py "<youtube_url>"
 ../../..>  python main.py "<youtube_url>" --song "X" --artist "Y"
